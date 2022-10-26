@@ -23,6 +23,27 @@
 //
 
 import Foundation
+extension Int64 {
+    fileprivate func decodeToUInt64() -> UInt64 {
+        let valuePointer = UnsafeMutablePointer<Int64>.allocate(capacity: 1)
+        defer {
+            valuePointer.deallocate()
+        }
+        valuePointer.pointee = self
+        return valuePointer.withMemoryRebound(to: UInt64.self, capacity: 1) { $0.pointee }
+    }
+}
+
+extension UInt64 {
+    fileprivate func encodeToInt64() -> Int64 {
+        let valuePointer = UnsafeMutablePointer<UInt64>.allocate(capacity: 1)
+        defer {
+            valuePointer.deallocate()
+        }
+        valuePointer.pointee = self
+        return valuePointer.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee }
+    }
+}
 
 extension QueryType {
     /// Creates an `INSERT` statement by encoding the given object
@@ -281,18 +302,15 @@ private class SQLiteEncoder: Encoder {
         }
 
         func encode(_ value: Int8, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an Int8 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: Int16, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an Int16 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: Int32, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an Int32 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: Int64, forKey key: Key) throws {
@@ -300,32 +318,27 @@ private class SQLiteEncoder: Encoder {
         }
 
         func encode(_ value: UInt, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an UInt is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: UInt8, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an UInt8 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: UInt16, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an UInt16 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: UInt32, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an UInt32 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- Int64(value))
         }
 
         func encode(_ value: UInt64, forKey key: Key) throws {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: codingPath,
-                                                                          debugDescription: "encoding an UInt64 is not supported"))
+            encoder.setters.append(Expression(key.stringValue) <- value.encodeToInt64())
         }
 
         func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key)
-        -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+            -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
             fatalError("encoding a nested container is not supported")
         }
 
@@ -389,18 +402,18 @@ private class SQLiteDecoder: Decoder {
         }
 
         func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an Int8 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return Int8(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an Int16 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return Int16(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an Int32 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return Int32(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
@@ -408,29 +421,28 @@ private class SQLiteDecoder: Decoder {
         }
 
         func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an UInt is not supported"))
-
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return UInt(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an UInt8 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return UInt8(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an UInt16 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return UInt16(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an UInt32 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return UInt32(truncatingIfNeeded: i64)
         }
 
         func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-            throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: codingPath,
-                                                                         debugDescription: "decoding an UInt64 is not supported"))
+            let i64 :Int64 = try row.get(Expression(key.stringValue))
+            return i64.decodeToUInt64()
         }
 
         func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
