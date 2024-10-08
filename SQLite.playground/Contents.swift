@@ -52,6 +52,7 @@ for user in try Array(rowIterator) {
 
 /// also with `map()`
 let mapRowIterator = try db.prepareRowIterator(users)
+
 let userIds = try mapRowIterator.map { $0[id] }
 
 /// using `failableNext()` on `RowIterator`
@@ -64,7 +65,7 @@ do {
     // Handle error
 }
 
-/// define a virtual tabe for the FTS index
+/// define a virtual table for the FTS index
 let emails = VirtualTable("emails")
 
 let subject = Expression<String>("subject")
@@ -114,7 +115,7 @@ print(columns)
 
 let schemaChanger = SchemaChanger(connection: db)
 try schemaChanger.alter(table: "users") { table in
-    table.add(ColumnDefinition(name: "age", type: .INTEGER))
+    table.add(column: ColumnDefinition(name: "age", type: .INTEGER))
     table.rename(column: "email", to: "electronic_mail")
     table.drop(column: "name")
 }

@@ -12,7 +12,7 @@ class SQLiteTestCase: XCTestCase {
         trace = [String: Int]()
 
         db.trace { SQL in
-            print(SQL)
+            // print("SQL: \(SQL)")
             self.trace[SQL, default: 0] += 1
         }
     }
@@ -103,6 +103,16 @@ let testUUIDValue = UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")!
 func assertSQL(_ expression1: @autoclosure () -> String, _ expression2: @autoclosure () -> Expressible,
                file: StaticString = #file, line: UInt = #line) {
     XCTAssertEqual(expression1(), expression2().asSQL(), file: file, line: line)
+}
+
+func extractAndReplace(_ value: String, regex: String, with replacement: String) -> (String, String) {
+    // We cannot use `Regex` because it is not available before iOS 16 :(
+    let regex = try! NSRegularExpression(pattern: regex)
+    let valueRange = NSRange(location: 0, length: value.utf16.count)
+    let match = regex.firstMatch(in: value, options: [], range: valueRange)!.range
+    let range = Range(match, in: value)!
+    let extractedValue = String(value[range])
+    return (value.replacingCharacters(in: range, with: replacement), extractedValue)
 }
 
 let table = Table("table")

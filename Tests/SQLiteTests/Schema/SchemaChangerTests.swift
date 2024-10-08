@@ -99,7 +99,7 @@ class SchemaChangerTests: SQLiteTestCase {
                                          defaultValue: .stringLiteral("foo"))
 
         try schemaChanger.alter(table: "users") { table in
-            table.add(newColumn)
+            table.add(column: newColumn)
         }
 
         let columns = try schema.columnDefinitions(table: "users")
@@ -114,7 +114,7 @@ class SchemaChangerTests: SQLiteTestCase {
                                          type: .TEXT)
 
         XCTAssertThrowsError(try schemaChanger.alter(table: "users") { table in
-            table.add(newColumn)
+            table.add(column: newColumn)
         }) { error in
             if case SchemaChanger.Error.invalidColumnDefinition(_) = error {
                 XCTAssertEqual("Invalid column definition: can not add primary key column", error.localizedDescription)
@@ -129,6 +129,20 @@ class SchemaChangerTests: SQLiteTestCase {
         XCTAssertThrowsError(try db.scalar(users.count)) { error in
             if case Result.error(let message, _, _) =  error {
                 XCTAssertEqual(message, "no such table: users")
+            } else {
+                XCTFail("unexpected error \(error)")
+            }
+        }
+    }
+
+    func test_drop_table_if_exists_true() throws {
+        try schemaChanger.drop(table: "xxx", ifExists: true)
+    }
+
+    func test_drop_table_if_exists_false() throws {
+        XCTAssertThrowsError(try schemaChanger.drop(table: "xxx", ifExists: false)) { error in
+            if case Result.error(let message, _, _) =  error {
+                XCTAssertEqual(message, "no such table: xxx")
             } else {
                 XCTFail("unexpected error \(error)")
             }
